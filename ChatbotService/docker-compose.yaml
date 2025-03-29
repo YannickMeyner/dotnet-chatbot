@@ -1,0 +1,9 @@
+services:
+  chatbot:
+    build: .
+    image: chatbotservice:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - HuggingFace__ApiKey=${HF_API_KEY}
+      - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT:-Production} # nutzt ENVIRONMENT Variable oder default zu Production

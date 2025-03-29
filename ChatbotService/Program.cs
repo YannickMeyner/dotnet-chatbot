@@ -1,0 +1,63 @@
+using ChatbotService.Models.Responses;
+
+// Minimal-API-Endpunkt für einen Hello-World-Service
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
+// HuggingFace API-Konfiguration
+var hfApiKey = builder.Configuration["HuggingFace:ApiKey"];
+const string baseAdress = "https://api-inference.huggingface.co/models/";
+const string modelName = "google/flan-t5-small";
+
+builder.Services.AddHttpClient("HuggingFace", client =>
+{
+    client.BaseAddress = new Uri(baseAdress);
+    client.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", hfApiKey);
+});
+
+var app = builder.Build();
+
+// Endpoint-Routes
+app.MapGet("/hello", () => "World!");
+app.MapGet("/env", () => app.Environment.EnvironmentName);
+app.MapGet("/chat", async (string message, IHttpClientFactory clientFactory, ILogger<Program> logger) =>
+{
+    logger.LogInformation("Chat request received: {Message}", message);
+    try
+    {
+        var client = clientFactory.CreateClient("HuggingFace");
+
+        var payload = new
+        {
+            inputs = message,
+            parameters = new
+            {
+                max_length = 50, // maximale Antwortlänge
+                temperature = 1.0 // kreativer und weniger faktenbasiert
+            }
+        };
+
+        var response = await client.PostAsJsonAsync(modelName, payload);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            logger.LogWarning("Failed API call to HuggingFace. Status: {StatusCode}", response.StatusCode);
+            return Results.Problem("Failed to get response from AI model");
+        }
+
+        var content = await response.Content.ReadFromJsonAsync<HuggingFaceResponse[]>();
+        var result = content?.FirstOrDefault()?.generated_text?.Trim();
+
+        logger.LogInformation("Chat response: {Response}", result);
+        return Results.Ok(result);
+    } catch (Exception ex)
+    {
+        logger.LogError(ex, "Error processing chat request");
+        return Results.Problem($"Error: {ex.Message}");
+    }
+});
+
+app.Run();
