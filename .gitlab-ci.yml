@@ -1,0 +1,33 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay2
+  IMAGE_NAME: "$ACR_LOGIN_SERVER/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA"
+
+stages:
+  - build
+  - push
+
+before_script:
+  - echo "$ACR_PASSWORD" | docker login "$ACR_LOGIN_SERVER" -u "$ACR_USERNAME" --password-stdin
+
+build_image:
+  stage: build
+  script:
+    - cd ChatbotService
+    - docker build -t $IMAGE_NAME .
+    - docker tag $IMAGE_NAME $ACR_LOGIN_SERVER/$CI_PROJECT_NAME:latest
+    - docker images
+
+push_image:
+  stage: push
+  script:
+    - docker push $IMAGE_NAME
+    - docker push $ACR_LOGIN_SERVER/$CI_PROJECT_NAME:latest
+  # Nur auf dem main-Branch und bei Tags ausführen
+  only:
+    - main
+    - tags
