@@ -7,7 +7,19 @@ include:
       project_name: "$CI_PROJECT_NAME"
       image_tag: "$CI_COMMIT_SHORT_SHA"
       directory: "ChatbotService"
-      
+
+  - component: gitlab.fhnw.ch/dps/module/fs25/fs25-group13/fs13-git-components/generate-sbom-component@main
+    inputs:
+      acr_login_server: "$ACR_LOGIN_SERVER"
+      project_name: "$CI_PROJECT_NAME"
+      image_tag: "$CI_COMMIT_SHORT_SHA"
+
+  - component: gitlab.fhnw.ch/dps/module/fs25/fs25-group13/fs13-git-components/scan-cve-component@main
+    inputs:
+      acr_login_server: "$ACR_LOGIN_SERVER"
+      project_name: "$CI_PROJECT_NAME"
+      image_tag: "$CI_COMMIT_SHORT_SHA"
+
   - component: gitlab.fhnw.ch/dps/module/fs25/fs25-group13/fs13-git-components/acr-push-component@main
     inputs:
       acr_login_server: "$ACR_LOGIN_SERVER"
@@ -15,3 +27,7 @@ include:
       acr_password: "$ACR_PASSWORD"
       project_name: "$CI_PROJECT_NAME"
       image_tag: "$CI_COMMIT_SHORT_SHA"
+
+  - component: gitlab.fhnw.ch/dps/module/fs25/fs25-group13/fs13-git-components/auto-release-notes-component@main
+    inputs:
+      release_stage: "deploy"
