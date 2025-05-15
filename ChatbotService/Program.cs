@@ -20,6 +20,16 @@ builder.Services.AddHttpClient("HuggingFace", client =>
 
 var app = builder.Build();
 
+// Health Check Endpoints
+app.MapGet("/liveness", () => Results.Ok());
+app.MapGet("/readiness", (IConfiguration config) =>
+{
+    var apiKey = config["HuggingFace:ApiKey"];
+    return string.IsNullOrEmpty(apiKey)
+        ? Results.StatusCode(503) // Service Unavailable wenn der API-Key fehlt
+        : Results.Ok();
+});
+
 // Endpoint-Routes
 app.MapGet("/hello", () => "World!");
 app.MapGet("/env", () => app.Environment.EnvironmentName);
@@ -53,7 +63,8 @@ app.MapGet("/chat", async (string message, IHttpClientFactory clientFactory, ILo
 
         logger.LogInformation("Chat response: {Response}", result);
         return Results.Ok(result);
-    } catch (Exception ex)
+    }
+    catch (Exception ex)
     {
         logger.LogError(ex, "Error processing chat request");
         return Results.Problem($"Error: {ex.Message}");

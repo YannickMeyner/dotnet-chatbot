@@ -31,3 +31,12 @@ include:
   - component: gitlab.fhnw.ch/dps/module/fs25/fs25-group13/fs13-git-components/auto-release-notes-component@main
     inputs:
       release_stage: "deploy"
+
+dotnet_lint:
+  stage: .pre
+  image: mcr.microsoft.com/dotnet/sdk:9.0
+  script:
+    - dotnet tool install -g dotnet-format
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - dotnet format ./ChatbotService/ChatbotService.sln --verify-no-changes
+  allow_failure: true
