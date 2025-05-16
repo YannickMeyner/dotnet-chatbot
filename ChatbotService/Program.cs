@@ -9,7 +9,7 @@ builder.Logging.AddDebug();
 // HuggingFace API-Konfiguration
 var hfApiKey = builder.Configuration["HuggingFace:ApiKey"];
 const string baseAdress = "https://api-inference.huggingface.co/models/";
-const string modelName = "google/flan-t5-small";
+const string modelName = "mistralai/Mixtral-8x7B-Instruct-v0.1";
 
 builder.Services.AddHttpClient("HuggingFace", client =>
 {
