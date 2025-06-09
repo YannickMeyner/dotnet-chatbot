@@ -1,4 +1,5 @@
 using ChatbotService.Models.Responses;
+using Prometheus;
 
 // Minimal-API-Endpunkt für einen Hello-World-Service
 var builder = WebApplication.CreateBuilder(args);
@@ -57,6 +58,9 @@ app.MapGet("/chat", async (string message, IHttpClientFactory clientFactory, ILo
             logger.LogWarning("Failed API call to HuggingFace. Status: {StatusCode}", response.StatusCode);
             return Results.Problem("Failed to get response from AI model");
         }
+
+        Metrics.CreateCounter("chatbot_chat_requests_total", "Total chat requests",
+                      new[] { "status_code", "endpoint" });
 
         var content = await response.Content.ReadFromJsonAsync<HuggingFaceResponse[]>();
         var result = content?.FirstOrDefault()?.generated_text?.Trim();
